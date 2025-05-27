@@ -1,7 +1,7 @@
+#include <d3dcompiler.h>
 #include "Direct3D.h"
 #include "Global.h"
 #include "Transform.h"
-#include <d3dcompiler.h>
 
 // 画面の処理に関する処理
 namespace Direct3D
@@ -185,8 +185,8 @@ namespace Direct3D
         pContext_->OMSetRenderTargets(1, &pRenderTargetView_, pDepthStencilView); // 描画先を指定（今後はレンダーターゲットビューを介して描画する）
         pContext_->RSSetViewports(1, &vp);                                        // ビューポートのセット
 
-        // コリジョン表示するか
-        isDrawCollision_ = GetPrivateProfileInt("DEBUG", "ViewCollider", 0, ".\\setup.ini") != 0;
+        //コリジョン表示するか
+		isDrawCollision_ = GetPrivateProfileInt("DEBUG", "ViewCollider", 0, ".\\setup.ini") != 0;
 
         screenWidth_ = screenWidth;
         screenHeight_ = screenHeight;
@@ -197,35 +197,277 @@ namespace Direct3D
     void InitShaderBundle()
     {
         DWORD vectorSize = sizeof(XMFLOAT3);
+
+        // 3D
+        {
+            // 頂点シェーダの作成（コンパイル）
+            ID3DBlob* pCompileVS = NULL;
+            D3DCompileFromFile(L"Shader/Simple3D.hlsl", nullptr, nullptr, "VS", "vs_5_0", NULL, 0, &pCompileVS, NULL);
+            pDevice_->CreateVertexShader(pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), NULL, &shaderBundle[SHADER_3D].pVertexShader);
+
+            // ピクセルシェーダの作成（コンパイル）
+            ID3DBlob* pCompilePS = NULL;
+            D3DCompileFromFile(L"Shader/Simple3D.hlsl", nullptr, nullptr, "PS", "ps_5_0", NULL, 0, &pCompilePS, NULL);
+            pDevice_->CreatePixelShader(pCompilePS->GetBufferPointer(), pCompilePS->GetBufferSize(), NULL, &shaderBundle[SHADER_3D].pPixelShader);
+
+
+            // 頂点レイアウトの作成（1頂点の情報が何のデータをどんな順番で待っているか
+            D3D11_INPUT_ELEMENT_DESC layout[] = {
+                {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, vectorSize * 0, D3D11_INPUT_PER_VERTEX_DATA, 0}, // 頂点位置
+                {"NORMAL"  , 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, vectorSize * 1, D3D11_INPUT_PER_VERTEX_DATA, 0}, // 法線
+                {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 0, vectorSize * 2, D3D11_INPUT_PER_VERTEX_DATA, 0}, // テクスチャ（UV）座標
+            };
+            pDevice_->CreateInputLayout(layout, 3, pCompileVS->GetBufferPointer(), pCompilePS->GetBufferSize(), &shaderBundle[SHADER_3D].pVertexLayout);
+
+            // シェーダーが無事作成出来たので、コンパイルしたやつはいらない
+            pCompileVS->Release();
+            pCompilePS->Release();
+
+            // ラスタライザ作成
+            D3D11_RASTERIZER_DESC rdc = {};
+            rdc.CullMode = D3D11_CULL_BACK;
+            rdc.FillMode = D3D11_FILL_SOLID;
+            rdc.FrontCounterClockwise = FALSE;  // 反時計回り（三角形の頂点順）が表面（front face）ではない＝裏面扱いになる
+            pDevice_->CreateRasterizerState(&rdc, &shaderBundle[SHADER_3D].pRasterizerState);
+        }
+
+        // 2D
+        {
+            // 頂点シェーダの作成（コンパイル）
+            ID3DBlob* pCompileVS = NULL;
+            D3DCompileFromFile(L"Shader/Simple2D.hlsl", nullptr, nullptr, "VS", "vs_5_0", NULL, 0, &pCompileVS, NULL);
+            pDevice_->CreateVertexShader(pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), NULL, &shaderBundle[SHADER_2D].pVertexShader);
+
+
+            // ピクセルシェーダの作成（コンパイル）
+            ID3DBlob* pCompilePS = NULL;
+            D3DCompileFromFile(L"Shader/Simple2D.hlsl", nullptr, nullptr, "PS", "ps_5_0", NULL, 0, &pCompilePS, NULL);
+            pDevice_->CreatePixelShader(pCompilePS->GetBufferPointer(), pCompilePS->GetBufferSize(), NULL, &shaderBundle[SHADER_2D].pPixelShader);
+
+
+            // 頂点レイアウトの作成（1頂点の情報が何のデータをどんな順番で持っているか）
+            D3D11_INPUT_ELEMENT_DESC layout[] = {
+                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, vectorSize * 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+                { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, vectorSize * 1, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            };
+            pDevice_->CreateInputLayout(layout, 2, pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), &shaderBundle[SHADER_2D].pVertexLayout);
+
+
+            //シェーダーが無事作成できたので、コンパイルしたやつはいらない
+            pCompileVS->Release();
+            pCompilePS->Release();
+
+            //ラスタライザ作成
+            D3D11_RASTERIZER_DESC rdc = {};
+            rdc.CullMode = D3D11_CULL_NONE;
+            rdc.FillMode = D3D11_FILL_SOLID;
+            rdc.FrontCounterClockwise = TRUE;
+            pDevice_->CreateRasterizerState(&rdc, &shaderBundle[SHADER_2D].pRasterizerState);
+        }
+
+        // DEBUG用
+        {
+            // 頂点シェーダの作成（コンパイル）
+            ID3DBlob* pCompileVS = NULL;
+            D3DCompileFromFile(L"Shader/Debug3D.hlsl", nullptr, nullptr, "VS", "vs_5_0", NULL, 0, &pCompileVS, NULL);
+            pDevice_->CreateVertexShader(pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), NULL, &shaderBundle[SHADER_UNLIT].pVertexShader);
+
+            // ピクセルシェーダの作成（コンパイル）
+            ID3DBlob* pCompilePS = NULL;
+            D3DCompileFromFile(L"Shader/Debug3D.hlsl", nullptr, nullptr, "PS", "ps_5_0", NULL, 0, &pCompilePS, NULL);
+            pDevice_->CreatePixelShader(pCompilePS->GetBufferPointer(), pCompilePS->GetBufferSize(), NULL, &shaderBundle[SHADER_UNLIT].pPixelShader);
+
+            // 頂点レイアウトの作成（1頂点の情報が何のデータをどんな順番で待っているか）
+            D3D11_INPUT_ELEMENT_DESC layout[] = {
+                {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+            };
+            pDevice_->CreateInputLayout(layout, 1, pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), &shaderBundle[SHADER_UNLIT].pVertexLayout);
+
+            // シェーダーが無事作成出来たので、コンパイルした奴はいらない
+            pCompileVS->Release();
+            pCompilePS->Release();
+
+            // ラスタライザ作成
+            D3D11_RASTERIZER_DESC rdc = {};
+            rdc.CullMode = D3D11_CULL_NONE;
+            rdc.FillMode = D3D11_FILL_WIREFRAME;
+            rdc.FrontCounterClockwise = TRUE;
+            pDevice_->CreateRasterizerState(&rdc, &shaderBundle[SHADER_UNLIT].pRasterizerState);
+        }
+
+        // BillBoard
+        {
+            // 頂点シェーダの作成（コンパイル）
+            ID3DBlob* pCompileVS = NULL;
+            D3DCompileFromFile(L"Shader/BillBoard.hlsl", nullptr, nullptr, "VS", "vs_5_0", NULL, 0, &pCompileVS, NULL);
+            pDevice_->CreateVertexShader(pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), NULL, &shaderBundle[SHADER_BILLBOARD].pVertexShader);
+
+            // ピクセルシェーダの作成（コンパイル）
+            ID3DBlob* pCompilePS = NULL;
+            D3DCompileFromFile(L"Shader/BillBoard.hlsl", nullptr, nullptr, "PS", "ps_5_0", NULL, 0, &pCompilePS, NULL);
+            pDevice_->CreatePixelShader(pCompilePS->GetBufferPointer(), pCompilePS->GetBufferSize(), NULL, &shaderBundle[SHADER_BILLBOARD].pPixelShader);
+
+            // 頂点レイアウトの作成（1頂点の情報が何のデータをどんな順番で待っているか）
+            D3D11_INPUT_ELEMENT_DESC layout[] = {
+                {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, vectorSize * 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+                {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, vectorSize * 1, D3D11_INPUT_PER_VERTEX_DATA, 0},
+            };
+            pDevice_->CreateInputLayout(layout, 2, pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), &shaderBundle[SHADER_BILLBOARD].pVertexLayout);
+
+            // シェーダーが無事作成できたので、コンパイルした奴はいらない
+            pCompileVS->Release();
+            pCompilePS->Release();
+
+            // ラスタライザ作成
+            D3D11_RASTERIZER_DESC rdc = {};
+            rdc.CullMode = D3D11_CULL_NONE;
+            rdc.FillMode = D3D11_FILL_SOLID;
+            rdc.FrontCounterClockwise = TRUE;
+            pDevice_->CreateRasterizerState(&rdc, &shaderBundle[SHADER_BILLBOARD].pRasterizerState);
+        }
     }
 
-    void Direct3D::SetShader(SHADER_TYPE type)
+    // 今から描画するShaderBundleを設定
+    void SetShader(SHADER_TYPE type)
     {
+        pContext_->RSSetState(shaderBundle[type].pRasterizerState);
+        pContext_->VSSetShader(shaderBundle[type].pVertexShader, NULL, 0);                         // 頂点シェーダをセット
+        pContext_->PSSetShader(shaderBundle[type].pPixelShader, NULL, 0);                          // ピクセルシェーダを設定
+        pContext_->IASetInputLayout(shaderBundle[type].pVertexLayout);
     }
 
-    void Direct3D::SetBlendMode(BLEND_MODE blendMode)
+    void SetBlendMode(BLEND_MODE blendMode)
     {
+        // 加算合成
+        float blendFactor[4] = { D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO };
+        pContext_->OMSetBlendState(pBlendState[blendMode], blendFactor, 0xffffffff);
+
+        // Zバッファへの書き込み
+        pContext_->OMSetDepthStencilState(pDepthStencilState[blendMode], 0);
     }
 
-    void Direct3D::BeginDraw()
+    void BeginDraw()
     {
+        // 何か準備できていないものがあったらあきらめる
+        if (NULL == pDevice_) return;
+        if (NULL == pContext_) return;
+        if (NULL == pRenderTargetView_) return;
+        if (NULL == pSwapChain_) return;
+
+        // remonchiffon R:255 G250 B205
+        // 背景の色
+        float clearColor[4] = { 255.0 / 255.0f, 250 / 255.0f, 205 / 255.0f, 1.0f }; // R,G,B,A
+        
+        // 画面をクリア
+        pContext_->ClearRenderTargetView(pRenderTargetView_, clearColor);
+
+        // 深度バッファクリア
+        pContext_->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
     }
 
-    void Direct3D::EndDraw()
+    void EndDraw()
     {
+        // スワップ（バックバッファを表に表示する）
+        pSwapChain_->Present(0, 0);
     }
 
-    void Direct3D::Release()
+    void Release()
     {
+        SAFE_RELEASE(pDepthStencil);
+        SAFE_RELEASE(pDepthStencilView);
+        SAFE_RELEASE(pRenderTargetView_);
+        SAFE_RELEASE(pSwapChain_);
+
+        for (int i = 0; i < BLEND_MAX; i++)
+        {
+            SAFE_RELEASE(pBlendState[i]);
+            SAFE_RELEASE(pDepthStencilState[i]);
+        }
+
+        for (int i = 0; i < SHADER_MAX; i++)
+        {
+            SAFE_RELEASE(shaderBundle[i].pRasterizerState);
+            SAFE_RELEASE(shaderBundle[i].pVertexLayout);
+            SAFE_RELEASE(shaderBundle[i].pVertexShader);
+            SAFE_RELEASE(shaderBundle[i].pPixelShader);
+        }
+
+        if (pContext_)
+        {
+            pContext_->ClearState();
+        }
+
+        SAFE_RELEASE(pRenderTargetView_);
+        SAFE_RELEASE(pSwapChain_);
+        SAFE_RELEASE(pContext_);
+        SAFE_RELEASE(pDevice_);
     }
 
-    bool Direct3D::Intersect(XMFLOAT3& start, XMFLOAT3& direction, XMFLOAT3& v0, XMFLOAT3& v1, XMFLOAT3& v2, float* distance)
+    bool Intersect(XMFLOAT3& start, XMFLOAT3& direction, XMFLOAT3& v0, XMFLOAT3& v1, XMFLOAT3& v2, float* distance)
     {
-        return false;
+        // 微小な定数
+        constexpr float kEpsilon = 1e-6f;
+
+        // 三角形の2辺
+        XMVECTOR edge1 = XMVectorSet(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z, 0.0f);
+        XMVECTOR edge2 = XMVectorSet(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z, 0.0f);
+
+        XMVECTOR alpha = XMVector3Cross(XMLoadFloat3(&direction), edge2);
+        float det = XMVector3Dot(edge1, alpha).m128_f32[0];
+
+        // 三角形に対して、レイが平行に入射するような場合　det = 0となる。
+        // detが小さすぎると 1/det が大きくなりすぎて数値的に不安定になるので
+        // det ? 0 の場合は交差しないこととする
+        if (-kEpsilon < det && det < kEpsilon)
+        {
+            return false;
+        }
+
+        float invDet = 1.0f / det;
+        XMFLOAT3 r = XMFLOAT3(start.x - v0.x, start.y - v0.y, start.z - v0.z);
+
+        // u が 0 <= u <= 1 を満たしているかを調べる
+        float u = XMVector3Dot(alpha, XMLoadFloat3(&r)).m128_f32[0] * invDet;
+        if (u < 0.0f || u > 1.0f)
+        {
+            return false;
+        }
+
+        XMVECTOR beta = XMVector3Cross(XMLoadFloat3(&r), edge1);
+
+        // v が 0 <= v <= 1 かつ u + v <= 1 を満たすことを調べる
+        // すなわち、vが　0 <= v <= 1 - u を満たしているかを調べればOK
+        float v = XMVector3Dot(XMLoadFloat3(&direction), beta).m128_f32[0] * invDet;
+        if (v < 0.0f || u + v > 1.0f)
+        {
+            return false;
+        }
+
+        // tが 0 <= t を満たすことを調べる
+        float t = XMVector3Dot(edge2, beta).m128_f32[0] * invDet;
+        if (t < 0.0f)
+        {
+            return false;
+        }
+
+        *distance = t;
+        return true;
     }
 
-    void Direct3D::SetDepthBafferWriteEnable(bool isWrite)
+    // Zバッファへの書き込みON/OFF
+    void SetDepthBafferWriteEnable(bool isWrite)
     {
-    }
+        // ON
+        if (isWrite)
+        {
+            // Zバッファ（デプスステンシルを指定する）
+            pContext_->OMSetRenderTargets(1, &pRenderTargetView_, pDepthStencilView);
+        }
 
+        // OFF
+        else
+        {
+            pContext_->OMSetRenderTargets(1, &pRenderTargetView_, nullptr);
+        }
+    }
 }
