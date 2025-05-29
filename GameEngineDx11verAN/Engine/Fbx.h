@@ -64,5 +64,29 @@ public:
 		return pFbxScene_;
 	}
 
-	// ロード
+	//ロード
+	//引数：fileName	ファイル名
+	//戻値：成功したかどうか
+	virtual HRESULT Load(std::string fileName);
+
+	//描画
+	//引数：World	ワールド行列
+	void    Draw(Transform& transform, int frame);
+
+	//解放
+	void    Release();
+
+	//任意のボーンの位置を取得
+	//引数：boneName	取得したいボーンの位置
+	//戻値：ボーンの位置
+	XMFLOAT3 GetBonePosition(std::string boneName);
+
+	//スキンメッシュアニメ中の現在の任意のボーンの位置を取得
+	//引数：boneName	取得したいボーンの位置
+	//戻値：ボーンの位置
+	XMFLOAT3 GetAnimBonePosition(std::string boneName);
+
+	//レイキャスト（レイを飛ばして当たり判定）
+	//引数：data	必要なものをまとめたデータ
+	void RayCast(RayCastData* data);
 };
