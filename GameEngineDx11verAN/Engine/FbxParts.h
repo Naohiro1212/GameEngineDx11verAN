@@ -33,7 +33,7 @@ class FbxParts
 		XMMATRIX worldViewProj; // ワールド、ビュー、プロジェクション行列を掛け合わせたもの（頂点変換に使用）
 		XMMATRIX normalTrans;   // 回転行列と拡大行列の逆行列を合成したもの（法線の変形に使用）
 		XMMATRIX world;         // ワールド行列
-		XMFLOAT4 lightDir;      // ライトの向き
+		XMFLOAT4 lightDirection;      // ライトの向き
 		XMFLOAT4 diffuse;       // ディフューズカラー、マテリアルの色（テクスチャを張っている時は使わない）
 		XMFLOAT4 ambient;       // アンビエント
 		XMFLOAT4 specular;      // スぺキュラー（Lambertの場合は0）
@@ -134,11 +134,6 @@ public:
 	// 引数：transform 行列情報
 	// 引数：time フレーム情報（1アニメーション内の今どこか）
 	void DrawSkinAnime(Transform& transform, FbxTime time);
-
-	// ボーンありのモデルを描画
-	// 引数：transform 行列情報
-	// 引数：time フレーム情報（1アニメーション内の今どこか）
-	void DrawSkinAnime(std::string takeName, Transform& transform, FbxTime time);
 
 	// ボーン無しのモデルを描画
 	// 引数：transform 行列情報
