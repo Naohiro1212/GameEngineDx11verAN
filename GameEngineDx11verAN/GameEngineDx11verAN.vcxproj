@@ -158,9 +158,11 @@
     <ClInclude Include="Engine\FbxParts.h" />
     <ClInclude Include="Engine\GameObject.h" />
     <ClInclude Include="Engine\Global.h" />
+    <ClInclude Include="Engine\Image.h" />
     <ClInclude Include="Engine\Model.h" />
     <ClInclude Include="Engine\RootObject.h" />
     <ClInclude Include="Engine\SphereCollider.h" />
+    <ClInclude Include="Engine\Sprite.h" />
     <ClInclude Include="Engine\Texture.h" />
     <ClInclude Include="Engine\Transform.h" />
   </ItemGroup>

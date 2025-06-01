@@ -94,41 +94,93 @@ namespace Model
         }
 
         // 同じモデルをほかでも使っていないか
+        bool isExist = false;
+        for (int i = 0; i < _datas.size(); i++)
+        {
+            // すでに開いている場合
+            if (_datas[i] != nullptr && i != handle && _datas[i]->pFbx == _datas[handle]->pFbx)
+            {
+                isExist = true;
+                break;
+            }
+        }
+
+        // 使ってなければモデル解放
+        if (isExist == false)
+        {
+            SAFE_DELETE(_datas[handle]->pFbx);
+        }
+
+        SAFE_DELETE(_datas[handle]);
     }
 
-    void Model::AllRelease()
+    void AllRelease()
     {
+        for (int i = 0; i < _datas.size(); i++)
+        {
+            if (_datas[i] != nullptr)
+            {
+                Release(i);
+            }
+        }
+        _datas.clear();
     }
 
-    void Model::SetAnimFrame(int handle, int startFrame, int endFrame, float animSpeed)
+    // アニメーションのフレーム数をセット
+    void SetAnimFrame(int handle, int startFrame, int endFrame, float animSpeed)
     {
+        _datas[handle]->SetAnimFrame(startFrame, endFrame, animSpeed);
     }
 
-    int Model::GetAnimFrame(int handle)
+    // 現在のアニメーションのフレームを取得
+    int GetAnimFrame(int handle)
     {
-        return 0;
+        return (int)_datas[handle]->nowFrame;
     }
 
-    XMFLOAT3 Model::GetBonePosition(int handle, std::string boneName)
+    // 任意のボーンの位置を取得
+    XMFLOAT3 GetBonePosition(int handle, std::string boneName)
     {
-        return XMFLOAT3();
+        XMFLOAT3 pos = _datas[handle]->pFbx->GetBonePosition(boneName);
+        XMVECTOR vec = XMVector3TransformCoord(XMLoadFloat3(&pos), _datas[handle]->transform.GetWorldMatrix());
+        XMStoreFloat3(&pos, vec);
+        return pos;
     }
 
-    XMFLOAT3 Model::GetAnimBonePosition(int handle, std::string boneName)
+    XMFLOAT3 GetAnimBonePosition(int handle, std::string boneName)
     {
-        return XMFLOAT3();
+        XMFLOAT3 pos = _datas[handle]->pFbx->GetAnimBonePosition(boneName);
+        XMVECTOR vec = XMVector3TransformCoord(XMLoadFloat3(&pos), _datas[handle]->transform.GetWorldMatrix());
+        XMStoreFloat3(&pos, vec);
+        return pos;
     }
 
-    void Model::SetTransform(int handle, Transform& transform)
+    // ワールド行列を設定
+    void SetTransform(int handle, Transform& transform)
     {
+        if (handle < 0 || handle >= _datas.size())
+        {
+            return;
+        }
+        _datas[handle]->transform = transform;
     }
 
-    XMMATRIX Model::GetMatrix(int handle)
+    XMMATRIX GetMatrix(int handle)
     {
-        return XMMATRIX();
+        return _datas[handle]->transform.GetWorldMatrix();
     }
 
-    void Model::RayCast(int handle, RayCastDeta* data)
+    void RayCast(int handle, RayCastData* data)
     {
+        XMFLOAT3 target = Transform::Float3Add(data->start, data->dir);
+        XMMATRIX matInv = XMMatrixInverse(nullptr, _datas[handle]->transform.GetWorldMatrix());
+        XMVECTOR vecStart = XMVector3TransformCoord(XMLoadFloat3(&data->start), matInv);
+        XMVECTOR vecTarget = XMVector3TransformCoord(XMLoadFloat3(&target), matInv);
+        XMVECTOR vecDir = vecTarget - vecStart;
+
+        XMStoreFloat3(&data->start, vecStart);
+        XMStoreFloat3(&data->dir, vecDir);
+
+        _datas[handle]->pFbx->RayCast(data);
     }
 }

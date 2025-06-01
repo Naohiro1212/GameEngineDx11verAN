@@ -95,5 +95,5 @@ namespace Model
 	// レイキャスト（例を飛ばして当たり判定）
 	// 引数：handle 判定したいモデルの番号
 	// 引数：data 必要な物をまとめたデータ
-	void RayCast(int handle, RayCastDeta* data);
+	void RayCast(int handle, RayCastData* data);
 }
