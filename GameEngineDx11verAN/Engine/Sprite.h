@@ -56,7 +56,18 @@ public:
 	Sprite();
 	~Sprite();
 
-	// 
+	// ロード
+	// 引数：fileName 画像ファイル名
+	// 戻り値：成功/失敗
+	HRESULT Load(std::string fileName);
 
+	// 描画
+	// 引数:matrix 変換行列（ワールド行列）
+	// 引数:rect   画像の切り取り範囲
+	// 引数:alpha  アルファ値（不透明度）
+	void Draw(Transform& transform, RECT rect, float alpha);
 
+	// 画像サイズの取得
+	// 戻り値：画像サイズ
+	XMFLOAT3 GetTextureSize() { return pTexture_->GetSize(); }
 };
