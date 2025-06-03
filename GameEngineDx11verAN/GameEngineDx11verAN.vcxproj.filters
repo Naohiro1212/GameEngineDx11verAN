@@ -54,6 +54,9 @@
     <ClCompile Include="Engine\Sprite.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Audio.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Direct3D.h">
@@ -99,6 +102,9 @@
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Sprite.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Audio.h">
       <Filter>Engine</Filter>
     </ClInclude>
   </ItemGroup>
