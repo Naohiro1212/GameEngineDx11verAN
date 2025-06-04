@@ -103,6 +103,11 @@ void Sprite::Draw(Transform& transform, RECT rect, float alpha)
     Direct3D::pContext_->VSSetConstantBuffers(0, 1, &pConstantBuffer_);
     Direct3D::pContext_->PSSetConstantBuffers(0, 1, &pConstantBuffer_);
     Direct3D::SetDepthBafferWriteEnable(false);
+    Direct3D::SetDepthBafferWriteEnable(false);
 
+    // インデックスバッファーをセット
+    stride = sizeof(int);
+    offset = 0;
+    Direct3D::pContext_->IASetIndexBuffer(pIndexBuffer_, DXGI_FORMAT_R32_UINT, 0);
 
 }
