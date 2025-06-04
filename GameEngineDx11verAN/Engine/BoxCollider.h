@@ -16,6 +16,6 @@ public:
 private:
 	//接触判定
 	//引数：target	相手の当たり判定
-	//戻値：接触してればtrue
+	//戻り値：接触してればtrue
 	bool IsHit(Collider* target) override;
 };
