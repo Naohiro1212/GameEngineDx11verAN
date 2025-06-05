@@ -65,35 +65,35 @@ int Audio::Load(std::wstring fileName, bool isLoop, int svNum)
     DWORD dwBytes = 0;
 
     Chunk riffChunk = { 0 };
-    ReadFile(hFile, &riffChunk.id, 4, &dwBytes, NULL);
-    ReadFile(hFile, &riffChunk.size, 4, &dwBytes, NULL);
+    ReadFile(hFile, &riffChunk.id, sizeof(riffChunk.id), &dwBytes, NULL);
+    ReadFile(hFile, &riffChunk.size, sizeof(riffChunk.size), &dwBytes, NULL);
 
     char wave[4] = "";
-    ReadFile(hFile, &wave, 4, &dwBytes, NULL);
+    ReadFile(hFile, &wave, sizeof(wave), &dwBytes, NULL);
 
     Chunk formatChunk = { 0 };
     while (formatChunk.id[0] != 'f')
     {
-        ReadFile(hFile, &formatChunk.size, 4, &dwBytes, NULL);
+        ReadFile(hFile, &formatChunk.size, sizeof(formatChunk.size), &dwBytes, NULL);
     }
-    ReadFile(hFile, &formatChunk.size, 4, &dwBytes, NULL);
+    ReadFile(hFile, &formatChunk.size, sizeof(formatChunk.size), &dwBytes, NULL);
 
     // フォーマットを読み取る
     // https://learn.microsoft.com/ja-jp/windows/win32/api/mmeapi/ns-mmeapi-waveformatex
     WAVEFORMATEX fmt;
-    ReadFile(hFile, &fmt.wFormatTag, 2, &dwBytes, NULL);      // 形式
-    ReadFile(hFile, &fmt.nChannels, 2, &dwBytes, NULL);       // チャンネル（モノラル/ステレオ）
-    ReadFile(hFile, &fmt.nSamplesPerSec, 4, &dwBytes, NULL);  // サンプリング数
-    ReadFile(hFile, &fmt.nAvgBytesPerSec, 4, &dwBytes, NULL); // 1秒当たりのバイト数
-    ReadFile(hFile, &fmt.nBlockAlign, 2, &dwBytes, NULL);     // ブロック配置
-    ReadFile(hFile, &fmt.wBitsPerSample, 2, &dwBytes, NULL);  // サンプル当たりのビット数
+    ReadFile(hFile, &fmt.wFormatTag, sizeof(fmt.wFormatTag), &dwBytes, NULL);      // 形式
+    ReadFile(hFile, &fmt.nChannels, sizeof(fmt.nChannels), &dwBytes, NULL);       // チャンネル（モノラル/ステレオ）
+    ReadFile(hFile, &fmt.nSamplesPerSec, sizeof(fmt.nSamplesPerSec), &dwBytes, NULL);  // サンプリング数
+    ReadFile(hFile, &fmt.nAvgBytesPerSec, sizeof(fmt.nAvgBytesPerSec), &dwBytes, NULL); // 1秒当たりのバイト数
+    ReadFile(hFile, &fmt.nBlockAlign, sizeof(fmt.nBlockAlign), &dwBytes, NULL);     // ブロック配置
+    ReadFile(hFile, &fmt.wBitsPerSample, sizeof(fmt.wBitsPerSample), &dwBytes, NULL);  // サンプル当たりのビット数
 
     // 波形データの読み込み
     Chunk data = { 0 };
     while (true)
     {
         // 次のデータのIDを調べる
-        ReadFile(hFile, &data.id, 4, &dwBytes, NULL);
+        ReadFile(hFile, &data.id, sizeof(data.id), &dwBytes, NULL);
 
         // 『data』だったらループを抜けて次に進む
         if (strcmp(data.id, "data") == 0) break;
@@ -102,7 +102,7 @@ int Audio::Load(std::wstring fileName, bool isLoop, int svNum)
         else
         {
             // サイズ調べて
-            ReadFile(hFile, &data.size, 4, &dwBytes, NULL);
+            ReadFile(hFile, &data.size, sizeof(data.size), &dwBytes, NULL);
             char* pBuffer = new char[data.size];
 
             // 無駄に読み込む
@@ -111,7 +111,7 @@ int Audio::Load(std::wstring fileName, bool isLoop, int svNum)
     }
 
     // データチャンクのサイズを取得
-    ReadFile(hFile, &data.size, 4, &dwBytes, NULL);
+    ReadFile(hFile, &data.size, sizeof(data.size), &dwBytes, NULL);
 
     // 波形データを読み込む
     char* pBuffer = new char[data.size];

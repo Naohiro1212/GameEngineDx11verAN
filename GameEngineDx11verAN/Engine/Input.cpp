@@ -135,6 +135,135 @@ namespace Input
     // マウスのボタンを今離したか調べる
     bool IsMouseButtonUp(int buttonCode)
     {
+        // 今押してなくて。前回は押してる
+        if (!IsMouseButton(buttonCode) && prevMouseState_.rgbButtons[buttonCode] & 0x80)
+        {
+            return true;
+        }
+        return false;
+    }
 
+    // マウスカーソルの位置を取得
+    XMFLOAT3 GetMousePosition()
+    {
+        XMFLOAT3 result = XMFLOAT3((float)mousePos_.x, (float)mousePos_.y, 0);
+        return result;
+    }
+
+    // マウスカーソルの位置をセット
+    void SetMousePosition(int x, int y)
+    {
+        mousePos_.x = x;
+        mousePos_.y = y;
+    }
+
+    // そのフレームでのマウスの移動量を取得
+    XMFLOAT3 GetMouseMove()
+    {
+        XMFLOAT3 result = XMFLOAT3((float)mouseState_.lX, (float)mouseState_.lY, (float)mouseState_.lZ);
+        return result;
+    }
+
+    // コントローラー情報取得 // 
+    // コントローラーのボタンが押されているか調べる
+    bool IsPadButton(int buttonCode, int padID)
+    {
+        if (controllerState_[padID].Gamepad.wButtons & buttonCode)
+        {
+            return true; // 押してる状態
+        }
+        return false; // 押してない
+    }
+
+    // コントローラーのボタンを今押したか調べる（押しっぱなしは無効）
+    bool IsPadButtonDown(int buttonCode, int padID)
+    {
+        // 今は押してて、前回は押してない
+        if (IsPadButton(buttonCode, padID) && !(prevControllerState_[padID].Gamepad.wButtons & buttonCode))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    // コントローラーのボタンを今離したか調べる
+    bool IsPadButtonUp(int buttonCode, int padID)
+    {
+        // 今押してなくて、前回は押してる
+        if (!IsPadButton(buttonCode, padID) && prevControllerState_[padID].Gamepad.wButtons & buttonCode)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    float GetAnalogValue(int raw, int max, int deadZone)
+    {
+        float result = (float)raw;
+
+        if (result > 0)
+        {
+            // デッドゾーン
+            if (result < deadZone)
+            {
+                result = 0;
+            }
+            else
+            {
+                result = (result - deadZone) / (max - deadZone);
+            }
+        }
+
+        else
+        {
+             // デッドゾーン
+            if (result > -deadZone)
+            {
+                result = 0;
+            }
+            else
+            {
+                result = (result + deadZone) / (max - deadZone);
+            }
+        }
+        return result;
+    }
+
+    // 左スティックの傾きを取得
+    XMFLOAT3 GetPadStickL(int padID)
+    {
+        float x = GetAnalogValue(controllerState_[padID].Gamepad.sThumbLX, 32767, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+        float y = GetAnalogValue(controllerState_[padID].Gamepad.sThumbLY, 32767, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+        return XMFLOAT3(x, y, 0);
+    }
+
+    // 右スティックの傾きを取得
+    XMFLOAT3 GetPadStickR(int padID)
+    {
+        float x = GetAnalogValue(controllerState_[padID].Gamepad.sThumbRX, 32767, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+        float y = GetAnalogValue(controllerState_[padID].Gamepad.sThumbRY, 32767, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+        return XMFLOAT3(x, y, 0);
+    }
+
+    // 左トリガーの押し込み具合を取得
+    float GetPadTrrigerL(int padID)
+    {
+        return GetAnalogValue(controllerState_[padID].Gamepad.bLeftTrigger, 255, XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+    }
+
+    // 右トリガーの押し込み具合を取得
+    float GetPadTrrigerR(int padID)
+    {
+        return GetAnalogValue(controllerState_[padID].Gamepad.bRightTrigger, 255, XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+    }
+
+    // 振動させる
+    void SetPadVibration(int l, int r, int padID)
+    {
+        XINPUT_VIBRATION vibration;
+        ZeroMemory(&vibration, sizeof(XINPUT_VIBRATION));
+        vibration.wLeftMotorSpeed = l;  // 左モーターの強さ
+        vibration.wRightMotorSpeed = r; // 右モーターの強さ
+        XInputSetState(padID, &vibration);
     }
 }

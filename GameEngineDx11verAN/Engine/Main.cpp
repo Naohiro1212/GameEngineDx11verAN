@@ -31,13 +31,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//#endif
 
 	srand((unsigned)time(NULL));
-	SetCurrentDirectory("Assets");
+	SetCurrentDirectoryW(L"Assets");
 
 	//初期化ファイル（setup.ini）から必要な情報を取得
-	int screenWidth = GetPrivateProfileInt("SCREEN", "Width", 800, ".\\setup.ini");		//スクリーンの幅
-	int screenHeight = GetPrivateProfileInt("SCREEN", "Height", 600, ".\\setup.ini");	//スクリーンの高さ
-	int fpsLimit = GetPrivateProfileInt("GAME", "Fps", 60, ".\\setup.ini");				//FPS（画面更新速度）
-	int isDrawFps = GetPrivateProfileInt("DEBUG", "ViewFps", 0, ".\\setup.ini");		//キャプションに現在のFPSを表示するかどうか
+	int screenWidth = GetPrivateProfileIntW(L"SCREEN", L"Width", 800, L".\\setup.ini");		//スクリーンの幅
+	int screenHeight = GetPrivateProfileIntW(L"SCREEN", L"Height", 600, L".\\setup.ini");	//スクリーンの高さ
+	int fpsLimit = GetPrivateProfileIntW(L"GAME", L"Fps", 60, L".\\setup.ini");				//FPS（画面更新速度）
+	int isDrawFps = GetPrivateProfileIntW(L"DEBUG", L"ViewFps", 0, L".\\setup.ini");		//キャプションに現在のFPSを表示するかどうか
 
 	//ウィンドウを作成
 	HWND hWnd = InitApp(hInstance, screenWidth, screenHeight, nCmdShow);
