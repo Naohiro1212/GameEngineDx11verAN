@@ -66,6 +66,12 @@
     <ClCompile Include="Engine\BillBoard.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Debug.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\GameObject.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Direct3D.h">
@@ -116,19 +122,19 @@
     <ClInclude Include="Engine\Audio.h">
       <Filter>Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\BillBoard.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Input.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\VFX.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\CsvReader.h">
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Debug.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\BillBoard.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Input.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\VFX.h">
       <Filter>Engine</Filter>
     </ClInclude>
   </ItemGroup>
