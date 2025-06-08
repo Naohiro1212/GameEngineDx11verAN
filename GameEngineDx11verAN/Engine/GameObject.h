@@ -94,43 +94,19 @@ public:
 	// 子オブジェクトを全て削除 
 	void KillAllChildren();
 
-	// コライダー（衝突判定）を追加する
+	//コライダー（衝突判定）を追加する
 	void AddCollider(Collider* collider);
 
-	inline void GameObject::ClearCollider()
-	{
-	}
+	//何かと衝突した場合に呼ばれる（オーバーライド用）
+	//引数：pTarget	衝突した相手
+	virtual void OnCollision(GameObject* pTarget) {};
 
-	// なにかと衝突した場合に呼ばれる（オーバーライド用）
-	// 引数：pTarget 衝突した相手
-	virtual void OnCollision(GameObject* pTarget) {}
-	inline void GameObject::CollisionDraw()
-	{
-	}
-	inline GameObject* GameObject::GetRootJob()
-	{
-		return nullptr;
-	}
-	inline void GameObject::SetScaleMatrix(XMMATRIX& m)
-	{
-	}
-	inline void GameObject::SetRotateMatrix(XMMATRIX& m)
-	{
-	}
-	inline void GameObject::SetTranslateMatrix(XMMATRIX& m)
-	{
-	}
-	inline void GameObject::KillObjectSub(GameObject* obj)
-	{
-	}
-	;
-
-	// コライダー（衝突判定）を削除
+	//コライダー（衝突判定）を削除
 	void ClearCollider();
 
-	// 衝突判定
-	// 引数：pTarget 衝突してるか調べる相手
-	void OnCollision(GameObject* pTarget);
+	//衝突判定
+	//引数：pTarget	衝突してるか調べる相手
+	void Collision(GameObject* pTarget);
 
 	// テスト用の衝突判定枠を表示
 	void CollisionDraw();
