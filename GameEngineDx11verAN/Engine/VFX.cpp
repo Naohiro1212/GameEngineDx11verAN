@@ -61,6 +61,50 @@ void VFX::ParticleUpdate()
 // 各エミッターの更新
 void VFX::EmitterUpdate()
 {
+    for (auto emitter = emitterList_.begin(); emitter != emitterList_.end();)
+    {
+        // もう死んでるエミッター
+        if ((*emitter)->isDead)
+        {
+            // そのエミッターから出たパーティクルが全部消えてたらエミッターも削除
+            if ((*emitter)->particleNum <= 0)
+            {
+                (*emitter)->pBillBoard->Release();
+                delete ((*emitter)->pBillBoard);
+                delete (*emitter);
+                emitter = emitterList_.erase(emitter);
+            }
+            else
+            {
+                emitter++;
+            }
+        }
+
+        // まだ生きてる
+        else
+        {
+            // パーティクルを発生させるタイミングなら
+            if ((*emitter)->data.delay == 0 || (*emitter)->frameCount % (*emitter)->data.delay == 0)
+            {
+                // パーティクル発生
+                CreateParticle(emitter);
+            }
+
+            (*emitter)->frameCount++;
+
+            // delayが0のエミッターは一発出したら削除
+            if ((*emitter)->data.delay == 0)
+            {
+                (*emitter)->isDead = true;
+            }
+
+            emitter++;
+        }
+    }
+}
+
+void VFX::CreateParticle(std::list<VFX::Emitter*>::iterator& emitter)
+{
 
 }
 
